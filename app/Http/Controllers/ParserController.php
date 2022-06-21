@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\RecordWillBeAddedToDB;
+use App\Jobs\RecordsCollection;
 use App\Parser\ParseJson;
 use App\Parser\ParseCsv;
 use App\Parser\Parser;
@@ -13,12 +13,6 @@ use Illuminate\Support\LazyCollection;
 
 class ParserController extends Controller
 {
-    /**
-     * Define the keys for matching database columns
-     *
-     * @var array
-     */
-    protected $keysToCompare = ["name", "address", "checked", "description", "interest", "date_of_birth", "email", "account", "credit_card"];
 
     /**
      * Reading the content from URL (Content will be read as a JSON string, will not be decoded)
@@ -46,16 +40,9 @@ class ParserController extends Controller
     
             $filteredParsedJson = $this->filterCreditCardNumberHasConsecutiveNumber($this->filterAge($parsedJson));
 
-            $addedRecords = 0;
+            RecordsCollection::dispatch($filteredParsedJson->all())->onQueue('medium');
 
-            foreach ($filteredParsedJson as $record) {
-                if ($this->keysToCompare == array_keys($record)) {
-                    RecordWillBeAddedToDB::dispatch($record);
-                    $addedRecords++;
-                }
-            }
-
-            return back()->with(['message' => $addedRecords . ' records have been processed.']);
+            return back()->with(['message' => $filteredParsedJson->count() . ' records have been processed.']);
         }
 
         if ($source->getHeader('Content-Type')[0] === "text/csv") {
@@ -96,16 +83,9 @@ class ParserController extends Controller
 
             $filteredParsedJson = $this->filterCreditCardNumberHasConsecutiveNumber($this->filterAge($parsedJson));
 
-            $addedRecords = 0;
+            RecordsCollection::dispatch($filteredParsedJson->all())->onQueue('medium');
 
-            foreach ($filteredParsedJson as $record) {
-                if ($this->keysToCompare == array_keys($record)) {
-                    RecordWillBeAddedToDB::dispatch($record);
-                    $addedRecords++;
-                }
-            }
-
-            return back()->with(['message' => $addedRecords . ' records have been processed.']);
+            return back()->with(['message' => $filteredParsedJson->count() . ' records have been processed.']);
         }
 
         if ($validated["file"]->getClientMimeType() === "text/csv") {

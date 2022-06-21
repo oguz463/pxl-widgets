@@ -6,3 +6,6 @@
 - For any further request from client the parser is designed extendable.
 - All filters have been added (Between ages(null), consecutive numbers.)
 - All DB records can be exported as CSV file.
+
+## Second Commit
+- Now configured as whole data is also thrown to the queue and configured queue priorities for writing data with a correct order in any case. (Faster process to show to client.)
